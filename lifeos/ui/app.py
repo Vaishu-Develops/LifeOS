@@ -27,9 +27,14 @@ if "credentials" not in st.session_state:
 
 USER_ID = os.getenv("LIFEOS_USER_ID", "local_user")
 
-# Instantiate orchestrator once per session
-if "orchestrator" not in st.session_state:
-    st.session_state.orchestrator = Orchestrator()
+# Instantiate orchestrator once per session, or recreate if credentials changed
+if "orchestrator" not in st.session_state or "last_creds_state" not in st.session_state:
+    st.session_state.orchestrator = Orchestrator(credentials=st.session_state.credentials)
+    st.session_state.last_creds_state = st.session_state.credentials
+elif st.session_state.last_creds_state is not st.session_state.credentials:
+    # Credentials changed, recreate orchestrator with new creds
+    st.session_state.orchestrator = Orchestrator(credentials=st.session_state.credentials)
+    st.session_state.last_creds_state = st.session_state.credentials
 
 # ============================================================================
 # Auth Sidebar

@@ -25,13 +25,18 @@ load_dotenv()
 AUDIT = AuditLogger()
 
 class OrchestratorAgent:
-    """Minimal orchestrator with ADK intent routing (falls back to deterministic rules)."""
+    """Minimal orchestrator with ADK intent routing (falls back to deterministic rules).
 
-    def __init__(self, model: str | None = None):
+    Accepts OAuth credentials and passes them to Calendar and Email agents.
+    """
+
+    def __init__(self, model: str | None = None, credentials: object | None = None):
         self.model = model or os.getenv("LIFEOS_MODEL", "gemini-2.0-flash")
         self.audit = AUDIT
         # ADK client for intent classification
         self.adk = ADKClient(model=self.model)
+        # OAuth credentials to pass to sub-agents
+        self.credentials = credentials
 
     def _classify_intent(self, text: str) -> str:
         # Prefer ADK classification when available; fallback to deterministic rules
@@ -86,14 +91,14 @@ class OrchestratorAgent:
 
             elif intent == "email.search":
                 query = text
-                email_agent = EmailAgent(user_id)
+                email_agent = EmailAgent(user_id, credentials=self.credentials)
                 threads = email_agent.search_threads(query=query)
                 result.update({"route": "email", "action": "search", "count": len(threads), "threads": threads})
 
             elif intent == "email.reply":
                 # naive: expect 'reply to <thread id>: <message>'
                 # fallback to drafting an empty reply
-                email_agent = EmailAgent(user_id)
+                email_agent = EmailAgent(user_id, credentials=self.credentials)
                 # Attempt to split by ':' to get body
                 parts = text.split(":", 1)
                 body = parts[1].strip() if len(parts) > 1 else ""
@@ -103,7 +108,7 @@ class OrchestratorAgent:
                 result.update({"route": "email", "action": "reply", "draft": draft})
 
             elif intent == "calendar.list":
-                cal = CalendarAgent(user_id)
+                cal = CalendarAgent(user_id, credentials=self.credentials)
                 events = cal.list_today()
                 result.update({"route": "calendar", "action": "list_today", "count": len(events), "events": events})
 
