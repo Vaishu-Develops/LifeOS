@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lifeos"
+version = "0.1.0"
+description = "LifeOS - AI-powered personal command center"
+requires-python = ">=3.8"
+dependencies = [
+    "streamlit>=1.28.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.31.0",
+    "google-auth>=2.25.0",
+    "google-auth-oauthlib>=1.1.0",
+    "google-auth-httplib2>=0.2.0",
+    "google-api-python-client>=2.100.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lifeos*"]
