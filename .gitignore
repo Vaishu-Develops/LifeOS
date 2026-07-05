@@ -1,0 +1,10 @@
+.env
+*.db
+*.sqlite3
+__pycache__/
+.vscode/
+.venv/
+.env.local
+.DS_Store
+lifeos/database/*.db
+lifeos/database/audit.log
