@@ -89,16 +89,25 @@ class ADKClient:
             except Exception as e:
                 logger.debug("Gemini classify_intent failed, falling back: %s", e)
 
-        # Deterministic fallback
+        # Strong Deterministic Fallback
         t = (text or "").lower()
-        if any(k in t for k in ["add task", "create task", "new task", "todo"]):
-            return "task.add"
-        if any(k in t for k in ["list tasks", "show tasks", "my tasks", "what are my tasks"]):
-            return "task.list"
+        
+        # Calendar keywords
+        if any(k in t for k in ["calendar", "event", "meeting", "schedule", "what does my", "busy", "free time", "booked"]):
+            return "calendar.list"
+            
+        # Email keywords
         if any(k in t for k in ["draft reply", "reply to", "reply"]):
             return "email.reply"
-        if any(k in t for k in ["search email", "find email", "inbox", "unread"]):
+        if any(k in t for k in ["email", "inbox", "unread", "message", "missed"]):
             return "email.search"
-        if any(k in t for k in ["calendar", "event", "meeting", "schedule", "what does my"]):
-            return "calendar.list"
+            
+        # Task List keywords
+        if any(k in t for k in ["list task", "show task", "my task", "to-do", "todo", "what do i have", "things i need"]):
+            return "task.list"
+            
+        # Task Add keywords (catch-all for action verbs)
+        if any(k in t for k in ["add task", "create task", "new task", "remind me", "i need to", "buy", "pack", "call", "remember"]):
+            return "task.add"
+            
         return "unknown"
