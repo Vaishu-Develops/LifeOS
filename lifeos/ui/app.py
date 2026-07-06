@@ -92,12 +92,28 @@ if submitted and user_input:
     result = orchestrator.handle_user(USER_ID, user_input)
     assistant_msg = result.get("message") or result.get("summary") or None
     if not assistant_msg:
-        parts = [f"intent: {result.get('intent', 'unknown')}", f"route: {result.get('route', 'none')}"]
-        if result.get("action"):
-            parts.append(f"action: {result['action']}")
-        if result.get("task_id"):
-            parts.append(f"task_id: {result['task_id']}")
-        assistant_msg = " | ".join(parts)
+        intent = result.get("intent")
+        if intent == "task.add":
+            assistant_msg = f"✅ I've added your new task! (Task ID: {result.get('task_id')})"
+        elif intent == "task.list":
+            tasks = result.get("tasks", [])
+            if not tasks:
+                assistant_msg = "You have no tasks right now. You're all caught up!"
+            else:
+                assistant_msg = f"📝 You have {result.get('count')} tasks:\n" + "\n".join([f"- {t}" for t in tasks])
+        elif intent == "email.search":
+            count = result.get("count", 0)
+            assistant_msg = f"📧 I found {count} email threads matching your search."
+        elif intent == "email.reply":
+            assistant_msg = "✅ I've drafted a reply for you."
+        elif intent == "calendar.list":
+            events = result.get("events", [])
+            if not events:
+                assistant_msg = "📅 Your calendar is clear today!"
+            else:
+                assistant_msg = f"📅 You have {result.get('count')} events today:\n" + "\n".join([f"- {e}" for e in events])
+        else:
+            assistant_msg = "I processed your request, but I don't know how to display the result!"
     st.session_state.history.append({"assistant": assistant_msg})
 
 for msg in st.session_state.history:
